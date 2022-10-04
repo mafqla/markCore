@@ -2,199 +2,198 @@ import {
   LOWERCASE_TAGS,
   CLASS_OR_ID,
   blockContainerElementNames,
-  emptyElementNames
-} from '../config'
-const CHOP_TEXT_REG = /(\*{1,3})([^*]+)(\1)/g
+  emptyElementNames,
+} from "../config";
+const CHOP_TEXT_REG = /(\*{1,3})([^*]+)(\1)/g;
 
 export const getTextContent = (node: any, blackList: any) => {
   if (node.nodeType === 3) {
-    return node.textContent
+    return node.textContent;
   } else if (!blackList) {
-    return node.textContent
+    return node.textContent;
   }
 
-  let text = ''
+  let text = "";
   if (
     blackList.some(
       (className: any) => node.classList && node.classList.contains(className)
     )
   ) {
-    return text
+    return text;
   }
 
   // Handle inline image
-  if (node.nodeType === 1 && node.classList.contains('ag-inline-image')) {
-    const raw = node.getAttribute('data-raw')
-    const imageContainer = node.querySelector('.ag-image-container')
-    const hasImg = imageContainer.querySelector('img')
-    const childNodes = imageContainer.childNodes
+  if (node.nodeType === 1 && node.classList.contains("ag-inline-image")) {
+    const raw = node.getAttribute("data-raw");
+    const imageContainer = node.querySelector(".ag-image-container");
+    const hasImg = imageContainer.querySelector("img");
+    const childNodes = imageContainer.childNodes;
     if (childNodes.length && hasImg) {
       for (const child of childNodes) {
-        if (child.nodeType === 1 && child.nodeName === 'IMG') {
-          text += raw
+        if (child.nodeType === 1 && child.nodeName === "IMG") {
+          text += raw;
         } else if (child.nodeType === 3) {
-          text += child.textContent
+          text += child.textContent;
         }
       }
-      return text
+      return text;
     }
-    return text + raw
+    return text + raw;
   }
 
-  const childNodes = node.childNodes
+  const childNodes = node.childNodes;
   for (const n of childNodes) {
-    text += getTextContent(n, blackList)
+    text += getTextContent(n, blackList);
   }
-  return text
-}
+  return text;
+};
 
 export const getOffsetOfParagraph: any = (node: any, paragraph: any) => {
-  let offset = 0
-  let preSibling = node
+  let offset = 0;
+  let preSibling = node;
 
-  if (node === paragraph) return offset
+  if (node === paragraph) return offset;
 
   do {
-    preSibling = preSibling.previousSibling
+    preSibling = preSibling.previousSibling;
     if (preSibling) {
       offset += getTextContent(preSibling, [
         CLASS_OR_ID.AG_MATH_RENDER,
-        CLASS_OR_ID.AG_RUBY_RENDER
-      ]).length
+        CLASS_OR_ID.AG_RUBY_RENDER,
+      ]).length;
     }
-  } while (preSibling)
+  } while (preSibling);
   return node === paragraph || node.parentNode === paragraph
     ? offset
-    : offset + getOffsetOfParagraph(node.parentNode, paragraph)
-}
+    : offset + getOffsetOfParagraph(node.parentNode, paragraph);
+};
 
 export const findNearestParagraph = (node: any) => {
   if (!node) {
-    return null
+    return null;
   }
   do {
-    if (isAganippeParagraph(node)) return node
-    node = node.parentNode
-  } while (node)
-  return null
-}
+    if (isAganippeParagraph(node)) return node;
+    node = node.parentNode;
+  } while (node);
+  return null;
+};
 
 export const findOutMostParagraph = (node: any) => {
   do {
-    const parentNode = node.parentNode
+    const parentNode = node.parentNode;
     if (isMuyaEditorElement(parentNode) && isAganippeParagraph(node))
-      return node
-    node = parentNode
-  } while (node)
-}
+      return node;
+    node = parentNode;
+  } while (node);
+};
 
 export const isAganippeParagraph = (element: any) => {
   return (
     element &&
     element.classList &&
     element.classList.contains(CLASS_OR_ID.AG_PARAGRAPH)
-  )
-}
+  );
+};
 
 export const isBlockContainer = (element: any) => {
   return (
     element &&
     element.nodeType !== 3 &&
     blockContainerElementNames.indexOf(element.nodeName.toLowerCase()) !== -1
-  )
-}
+  );
+};
 
 export const isMuyaEditorElement = (element: any) => {
-  return element && element.id === CLASS_OR_ID.AG_EDITOR_ID
-}
+  return element && element.id === CLASS_OR_ID.AG_EDITOR_ID;
+};
 
 export const traverseUp = (current: any, testElementFunction: any) => {
   if (!current) {
-    return false
+    return false;
   }
 
   do {
     if (current.nodeType === 1) {
       if (testElementFunction(current)) {
-        return current
+        return current;
       }
       // do not traverse upwards past the nearest containing editor
       if (isMuyaEditorElement(current)) {
-        return false
+        return false;
       }
     }
 
-    current = current.parentNode
-  } while (current)
+    current = current.parentNode;
+  } while (current);
 
-  return false
-}
+  return false;
+};
 
 export const getFirstSelectableLeafNode = (element: any) => {
   while (element && element.firstChild) {
-    element = element.firstChild
+    element = element.firstChild;
   }
 
   // We don't want to set the selection to an element that can't have children, this messes up Gecko.
   element = traverseUp(element, (el: any) => {
-    return emptyElementNames.indexOf(el.nodeName.toLowerCase()) === -1
-  })
+    return emptyElementNames.indexOf(el.nodeName.toLowerCase()) === -1;
+  });
   // Selecting at the beginning of a table doesn't work in PhantomJS.
   if (element.nodeName.toLowerCase() === LOWERCASE_TAGS.table) {
-    const firstCell = element.querySelector('th, td')
+    const firstCell = element.querySelector("th, td");
     if (firstCell) {
-      element = firstCell
+      element = firstCell;
     }
   }
-  return element
-}
+  return element;
+};
 
 export const getClosestBlockContainer = (node: any) => {
   return traverseUp(node, (node: any) => {
-    return isBlockContainer(node) || isMuyaEditorElement(node)
-  })
-}
+    return isBlockContainer(node) || isMuyaEditorElement(node);
+  });
+};
 
 export const getCursorPositionWithinMarkedText = (
   markedText: string,
   cursorOffset: number
 ) => {
-  const chunks = []
-  let match
-  let result = { type: 'OUT' }
+  const chunks: any = [];
+  let match;
+  let result = { type: "OUT" };
 
   do {
-    match = CHOP_TEXT_REG.exec(markedText)
+    match = CHOP_TEXT_REG.exec(markedText);
     if (match) {
       chunks.push({
         index: match.index + match[1].length,
         leftSymbol: match[1],
         rightSymbol: match[3],
-        lastIndex: CHOP_TEXT_REG.lastIndex - match[3].length
-      })
+        lastIndex: CHOP_TEXT_REG.lastIndex - match[3].length,
+      });
     }
-  } while (match)
+  } while (match);
 
- 
-  chunks.forEach(chunk => {
-    const { index, leftSymbol, rightSymbol, lastIndex } = chunk
+  chunks.forEach((chunk) => {
+    const { index, leftSymbol, rightSymbol, lastIndex } = chunk;
     if (cursorOffset > index && cursorOffset < lastIndex) {
       //@ts-ignore
-      result = { type: 'IN', info: leftSymbol } // rightSymbol is also ok
+      result = { type: "IN", info: leftSymbol }; // rightSymbol is also ok
     } else if (cursorOffset === index) {
       //@ts-ignore
-      result = { type: 'LEFT', info: leftSymbol.length }
+      result = { type: "LEFT", info: leftSymbol.length };
     } else if (cursorOffset === lastIndex) {
       //@ts-ignore
-      result = { type: 'RIGHT', info: rightSymbol.length }
+      result = { type: "RIGHT", info: rightSymbol.length };
     }
-  })
-  return result
-}
+  });
+  return result;
+};
 
 export const compareParagraphsOrder = (paragraph1: any, paragraph2: any) => {
   return (
     paragraph1.compareDocumentPosition(paragraph2) &
     Node.DOCUMENT_POSITION_FOLLOWING
-  )
-}
+  );
+};
