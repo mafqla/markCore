@@ -9,7 +9,7 @@ export default function renderBlock(
       activeBlocks: any,
       matches: any,
       useCache?: boolean
-    ) => any;
+    ) => any
     renderLeafBlock: (
       this: any,
       parent: any,
@@ -17,7 +17,8 @@ export default function renderBlock(
       activeBlocks: any,
       matches: any,
       useCache?: boolean
-    ) => import("snabbdom").VNode;
+      //@ts-ignore
+    ) => import('snabbdom').VNode
     renderContainerBlock: (
       this: any,
       parent?: any,
@@ -25,8 +26,10 @@ export default function renderBlock(
       activeBlocks?: any,
       matches?: any,
       useCache?: boolean
-    ) => import("snabbdom").VNode;
-    renderIcon: (block: any) => import("snabbdom").VNode;
+      //@ts-ignore
+    ) => import('snabbdom').VNode
+    //@ts-ignore
+    renderIcon: (block: any) => import('snabbdom').VNode
   },
   parent: any,
   block: any,
@@ -36,8 +39,8 @@ export default function renderBlock(
 ) {
   const method =
     Array.isArray(block.children) && block.children.length > 0
-      ? "renderContainerBlock"
-      : "renderLeafBlock";
+      ? 'renderContainerBlock'
+      : 'renderLeafBlock'
 
-  return this[method](parent, block, activeBlocks, matches, useCache);
+  return this[method](parent, block, activeBlocks, matches, useCache)
 }
