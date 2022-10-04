@@ -3,8 +3,6 @@ import components from "prismjs/components";
 import getLoader from "prismjs/dependencies";
 import { getDefer } from "../utils";
 
-import Prism from "prismjs";
-
 /**
  * The set of all languages which have been loaded using the below function.
  *
@@ -17,17 +15,17 @@ export const loadedLanguages: Set<String> = new Set([
   "javascript",
 ]);
 
-const { languages: allLanguages } = components.languages;
+const languages = components.languages;
 
 // Look for the origin languge by alias
 export const transformAliasToOrigin = (langs: any[]) => {
   const result: any = [];
   for (const lang of langs) {
-    if (allLanguages[lang]) {
+    if (languages[lang]) {
       result.push(lang);
     } else {
-      const language = Object.keys(allLanguages).find((name) => {
-        const l = allLanguages[name];
+      const language = Object.keys(languages).find((name) => {
+        const l = languages[name];
         if (l.alias) {
           return (
             l.alias === lang ||
@@ -53,7 +51,7 @@ function initLoadLanguage(Prism) {
   return async function loadLanguages(langs: string[] | string) {
     // If no argument is passed, load all components
     if (!langs) {
-      langs = Object.keys(allLanguages).filter((lang) => lang !== "meta");
+      langs = Object.keys(languages).filter((lang) => lang !== "meta");
     }
 
     if (langs && !langs.length) {
