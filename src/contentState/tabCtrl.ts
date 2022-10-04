@@ -237,7 +237,7 @@ const tabCtrl = (ContentState: any) => {
       labels,
       options: this.muya.options
     })
-    let result = null
+    let result:any = null
     const walkTokens = (tkns: any) => {
       for (const token of tkns) {
         const {

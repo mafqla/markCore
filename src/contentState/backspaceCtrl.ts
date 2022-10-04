@@ -179,7 +179,7 @@ const backspaceCtrl = (ContentState: any) => {
       options: this.muya.options
     })
     let needRender = false
-    let preToken = null
+    let preToken:any = null
     for (const token of tokens) {
       // handle delete the second $ in inline_math.
       if (token.range.end === start.offset && token.type === 'inline_math') {

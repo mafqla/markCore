@@ -388,7 +388,8 @@ class Selection {
   }
 
   selectNode(node: any) {
-    const range = this.doc.createRange();
+    const range: Range = this.doc.createRange();
+
     range.selectNodeContents(node);
     this.selectRange(range);
   }
@@ -735,7 +736,6 @@ class Selection {
   getSelectionEnd() {
     const node = this.doc.getSelection().focusNode;
     const endNode = node && node.nodeType === 3 ? node.parentNode : node;
-
     return endNode;
   }
 }

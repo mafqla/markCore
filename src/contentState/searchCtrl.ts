@@ -6,7 +6,7 @@ const matchString = (text: any, value: any, options: any) => {
   /* eslint-disable no-useless-escape */
   const SPECIAL_CHAR_REG = /[\[\]\\^$.\|\?\*\+\(\)\/]{1}/g
   /* eslint-enable no-useless-escape */
-  let SEARCH_REG = null
+  let SEARCH_REG:any = null
   let regStr = value
   let flag = 'g'
 

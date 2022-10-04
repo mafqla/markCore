@@ -116,7 +116,7 @@ const clickCtrl = (ContentState: any) => {
     }
 
     if (inlineNode) {
-      let formatType = null
+      let formatType:any = null
       let data = null
       switch (inlineNode.tagName) {
         case 'SPAN': {

@@ -53,7 +53,7 @@ const inputCtrl = (ContentState: any) => {
       return false;
     }
 
-    const tokens = tokenizer(text, {
+    const tokens: any[] = tokenizer(text, {
       hasBeginRules: false,
       options: this.muya.options,
     });

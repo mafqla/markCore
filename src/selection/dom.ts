@@ -191,7 +191,7 @@ export const getCursorPositionWithinMarkedText = (
   return result;
 };
 
-export const compareParagraphsOrder = (paragraph1: any, paragraph2: any) => {
+export const compareParagraphsOrder = (paragraph1: Node, paragraph2: Node) => {
   return (
     paragraph1.compareDocumentPosition(paragraph2) &
     Node.DOCUMENT_POSITION_FOLLOWING
