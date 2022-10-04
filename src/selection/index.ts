@@ -2,8 +2,8 @@
  * This file is copy from [medium-editor](https://github.com/yabwe/medium-editor)
  * and customize for specialized use.
  */
-import Cursor from './cursor'
-import { CLASS_OR_ID } from '../config'
+import Cursor from "./cursor";
+import { CLASS_OR_ID } from "../config";
 import {
   isBlockContainer,
   traverseUp,
@@ -12,34 +12,34 @@ import {
   getCursorPositionWithinMarkedText,
   findNearestParagraph,
   getTextContent,
-  getOffsetOfParagraph
-} from './dom'
+  getOffsetOfParagraph,
+} from "./dom";
 
 const filterOnlyParentElements = (node: any) => {
   return isBlockContainer(node)
     ? NodeFilter.FILTER_ACCEPT
-    : NodeFilter.FILTER_SKIP
-}
+    : NodeFilter.FILTER_SKIP;
+};
 
 class Selection {
-  [x: string]: any
+  [x: string]: any;
   constructor(doc: any) {
-    this.doc = doc // document
+    this.doc = doc; // document
   }
 
   findMatchingSelectionParent(testElementFunction: any, contentWindow: any) {
-    const selection = contentWindow.getSelection()
-    let range
-    let current
+    const selection = contentWindow.getSelection();
+    let range;
+    let current;
 
     if (selection.rangeCount === 0) {
-      return false
+      return false;
     }
 
-    range = selection.getRangeAt(0)
-    current = range.commonAncestorContainer
+    range = selection.getRangeAt(0);
+    current = range.commonAncestorContainer;
 
-    return traverseUp(current, testElementFunction)
+    return traverseUp(current, testElementFunction);
   }
 
   // https://stackoverflow.com/questions/17678843/cant-restore-selection-after-html-modify-even-if-its-the-same-html
@@ -58,24 +58,24 @@ class Selection {
   ) {
     if (!selectionState || !root) {
       throw new Error(
-        'your must provide a [selectionState] and a [root] element'
-      )
+        "your must provide a [selectionState] and a [root] element"
+      );
     }
 
-    let range = this.doc.createRange()
-    range.setStart(root, 0)
-    range.collapse(true)
+    let range = this.doc.createRange();
+    range.setStart(root, 0);
+    range.collapse(true);
 
-    let node = root
-    const nodeStack = []
-    let charIndex = 0
-    let foundStart = false
-    let foundEnd = false
-    let trailingImageCount = 0
-    let stop = false
-    let nextCharIndex
-    let allowRangeToStartAtEndOfNode = false
-    let lastTextNode = null
+    let node = root;
+    const nodeStack: any = [];
+    let charIndex = 0;
+    let foundStart = false;
+    let foundEnd = false;
+    let trailingImageCount = 0;
+    let stop = false;
+    let nextCharIndex;
+    let allowRangeToStartAtEndOfNode = false;
+    let lastTextNode: any = null;
 
     // When importing selection, the start of the selection may lie at the end of an element
     // or at the beginning of an element.  Since visually there is no difference between these 2
@@ -93,21 +93,21 @@ class Selection {
     if (
       favorLaterSelectionAnchor ||
       selectionState.startsWithImage ||
-      typeof selectionState.emptyBlocksIndex !== 'undefined'
+      typeof selectionState.emptyBlocksIndex !== "undefined"
     ) {
-      allowRangeToStartAtEndOfNode = true
+      allowRangeToStartAtEndOfNode = true;
     }
 
     while (!stop && node) {
       // Only iterate over elements and text nodes
       if (node.nodeType > 3) {
-        node = nodeStack.pop()
-        continue
+        node = nodeStack.pop();
+        continue;
       }
 
       // If we hit a text node, we need to add the amount of characters to the overall count
       if (node.nodeType === 3 && !foundEnd) {
-        nextCharIndex = charIndex + node.length
+        nextCharIndex = charIndex + node.length;
         // Check if we're at or beyond the start of the selection we're importing
         if (
           !foundStart &&
@@ -120,14 +120,14 @@ class Selection {
             allowRangeToStartAtEndOfNode ||
             selectionState.start < nextCharIndex
           ) {
-            range.setStart(node, selectionState.start - charIndex)
-            foundStart = true
+            range.setStart(node, selectionState.start - charIndex);
+            foundStart = true;
           } else {
             // We're at the end of a text node where the selection could start but we shouldn't
             // make the selection start here because allowRangeToStartAtEndOfNode is false.
             // However, we should keep a reference to this node in case there aren't any more
             // text nodes after this, so that we have somewhere to import the selection to
-            lastTextNode = node
+            lastTextNode = node;
           }
         }
         // We've found the start of the selection, check if we're at or beyond the end of the selection we're importing
@@ -137,42 +137,42 @@ class Selection {
           selectionState.end <= nextCharIndex
         ) {
           if (!selectionState.trailingImageCount) {
-            range.setEnd(node, selectionState.end - charIndex)
-            stop = true
+            range.setEnd(node, selectionState.end - charIndex);
+            stop = true;
           } else {
-            foundEnd = true
+            foundEnd = true;
           }
         }
-        charIndex = nextCharIndex
+        charIndex = nextCharIndex;
       } else {
         if (selectionState.trailingImageCount && foundEnd) {
-          if (node.nodeName.toLowerCase() === 'img') {
-            trailingImageCount++
+          if (node.nodeName.toLowerCase() === "img") {
+            trailingImageCount++;
           }
           if (trailingImageCount === selectionState.trailingImageCount) {
             // Find which index the image is in its parent's children
-            let endIndex = 0
+            let endIndex = 0;
             while (node.parentNode.childNodes[endIndex] !== node) {
-              endIndex++
+              endIndex++;
             }
-            range.setEnd(node.parentNode, endIndex + 1)
-            stop = true
+            range.setEnd(node.parentNode, endIndex + 1);
+            stop = true;
           }
         }
 
         if (!stop && node.nodeType === 1) {
           // this is an element
           // add all its children to the stack
-          let i = node.childNodes.length - 1
+          let i = node.childNodes.length - 1;
           while (i >= 0) {
-            nodeStack.push(node.childNodes[i])
-            i -= 1
+            nodeStack.push(node.childNodes[i]);
+            i -= 1;
           }
         }
       }
 
       if (!stop) {
-        node = nodeStack.pop()
+        node = nodeStack.pop();
       }
     }
 
@@ -180,54 +180,54 @@ class Selection {
     // to make the selection start at, we should fall back to starting the selection
     // at the END of the last text node we found
     if (!foundStart && lastTextNode) {
-      range.setStart(lastTextNode, lastTextNode.length)
-      range.setEnd(lastTextNode, lastTextNode.length)
+      range.setStart(lastTextNode, lastTextNode.length);
+      range.setEnd(lastTextNode, lastTextNode.length);
     }
 
-    if (typeof selectionState.emptyBlocksIndex !== 'undefined') {
+    if (typeof selectionState.emptyBlocksIndex !== "undefined") {
       range = this.importSelectionMoveCursorPastBlocks(
         root,
         selectionState.emptyBlocksIndex,
         range
-      )
+      );
     }
 
     // If the selection is right at the ending edge of a link, put it outside the anchor tag instead of inside.
     if (favorLaterSelectionAnchor) {
-      range = this.importSelectionMoveCursorPastAnchor(selectionState, range)
+      range = this.importSelectionMoveCursorPastAnchor(selectionState, range);
     }
 
-    this.selectRange(range)
+    this.selectRange(range);
   }
 
   // Utility method called from importSelection only
   importSelectionMoveCursorPastAnchor(selectionState: any, range: any) {
     const nodeInsideAnchorTagFunction = function (node: any) {
-      return node.nodeName.toLowerCase() === 'a'
-    }
+      return node.nodeName.toLowerCase() === "a";
+    };
     if (
       selectionState.start === selectionState.end &&
       range.startContainer.nodeType === 3 &&
       range.startOffset === range.startContainer.nodeValue.length &&
       traverseUp(range.startContainer, nodeInsideAnchorTagFunction)
     ) {
-      let prevNode = range.startContainer
-      let currentNode = range.startContainer.parentNode
+      let prevNode = range.startContainer;
+      let currentNode = range.startContainer.parentNode;
       while (
         currentNode !== null &&
-        currentNode.nodeName.toLowerCase() !== 'a'
+        currentNode.nodeName.toLowerCase() !== "a"
       ) {
         if (
           currentNode.childNodes[currentNode.childNodes.length - 1] !== prevNode
         ) {
-          currentNode = null
+          currentNode = null;
         } else {
-          prevNode = currentNode
-          currentNode = currentNode.parentNode
+          prevNode = currentNode;
+          currentNode = currentNode.parentNode;
         }
       }
-      if (currentNode !== null && currentNode.nodeName.toLowerCase() === 'a') {
-        let currentNodeIndex: any = null
+      if (currentNode !== null && currentNode.nodeName.toLowerCase() === "a") {
+        let currentNodeIndex: any = null;
         for (
           let i = 0;
           currentNodeIndex === null &&
@@ -235,14 +235,14 @@ class Selection {
           i++
         ) {
           if (currentNode.parentNode.childNodes[i] === currentNode) {
-            currentNodeIndex = i
+            currentNodeIndex = i;
           }
         }
-        range.setStart(currentNode.parentNode, currentNodeIndex + 1)
-        range.collapse(true)
+        range.setStart(currentNode.parentNode, currentNodeIndex + 1);
+        range.collapse(true);
       }
     }
-    return range
+    return range;
   }
 
   // Uses the emptyBlocksIndex calculated by getIndexRelativeToAdjacentEmptyBlocks
@@ -253,11 +253,11 @@ class Selection {
       NodeFilter.SHOW_ELEMENT,
       filterOnlyParentElements,
       false
-    )
-    const startContainer = range.startContainer
-    let startBlock
-    let targetNode
-    let currIndex = 0
+    );
+    const startContainer = range.startContainer;
+    let startBlock;
+    let targetNode;
+    let currIndex = 0;
     // If index is 0, we still want to move to the next block
 
     // Chrome counts newlines and spaces that separate block elements as actual elements.
@@ -268,9 +268,9 @@ class Selection {
       startContainer.nodeType === 3 &&
       isBlockContainer(startContainer.previousSibling)
     ) {
-      startBlock = startContainer.previousSibling
+      startBlock = startContainer.previousSibling;
     } else {
-      startBlock = getClosestBlockContainer(startContainer)
+      startBlock = getClosestBlockContainer(startContainer);
     }
 
     // Skip over empty blocks until we hit the block we want the selection to be in
@@ -278,81 +278,81 @@ class Selection {
       if (!targetNode) {
         // Loop through all blocks until we hit the starting block element
         if (startBlock === treeWalker.currentNode) {
-          targetNode = treeWalker.currentNode
+          targetNode = treeWalker.currentNode;
         }
       } else {
-        targetNode = treeWalker.currentNode
-        currIndex++
+        targetNode = treeWalker.currentNode;
+        currIndex++;
         // We hit the target index, bail
         if (currIndex === index) {
-          break
+          break;
         }
         // If we find a non-empty block, ignore the emptyBlocksIndex and just put selection here
         if (targetNode.textContent.length > 0) {
-          break
+          break;
         }
       }
     }
 
     if (!targetNode) {
-      targetNode = startBlock
+      targetNode = startBlock;
     }
 
     // We're selecting a high-level block node, so make sure the cursor gets moved into the deepest
     // element at the beginning of the block
-    range.setStart(getFirstSelectableLeafNode(targetNode), 0)
+    range.setStart(getFirstSelectableLeafNode(targetNode), 0);
 
-    return range
+    return range;
   }
 
   // https://stackoverflow.com/questions/4176923/html-of-selected-text
   // by Tim Down
   getSelectionHtml() {
-    const sel = this.doc.getSelection()
-    let i
-    let html = ''
-    let len
-    let container
+    const sel = this.doc.getSelection();
+    let i;
+    let html = "";
+    let len;
+    let container;
     if (sel.rangeCount) {
-      container = this.doc.createElement('div')
+      container = this.doc.createElement("div");
       for (i = 0, len = sel.rangeCount; i < len; i += 1) {
-        container.appendChild(sel.getRangeAt(i).cloneContents())
+        container.appendChild(sel.getRangeAt(i).cloneContents());
       }
-      html = container.innerHTML
+      html = container.innerHTML;
     }
-    return html
+    return html;
   }
 
   chopHtmlByCursor(root: any) {
-    const { left } = this.getCaretOffsets(root)
-    const markedText = root.textContent
+    const { left } = this.getCaretOffsets(root);
+    const markedText = root.textContent;
     const { type, info }: any = getCursorPositionWithinMarkedText(
       markedText,
       left
-    )
-    const pre = markedText.slice(0, left)
-    const post = markedText.slice(left)
+    );
+    const pre = markedText.slice(0, left);
+    const post = markedText.slice(left);
     switch (type) {
-      case 'OUT':
+      case "OUT":
         return {
           pre,
-          post
-        }
-      case 'IN':
+          post,
+        };
+      case "IN":
         return {
           pre: `${pre}${info}`,
-          post: `${info}${post}`
-        }
-      case 'LEFT':
+          post: `${info}${post}`,
+        };
+      case "LEFT":
         return {
           pre: markedText.slice(0, left - info),
-          post: markedText.slice(left - info)
-        }
-      case 'RIGHT':
+          post: markedText.slice(left - info),
+        };
+      case "RIGHT":
         return {
           pre: markedText.slice(0, left + info),
-          post: markedText.slice(left + info)
-        }
+          post: markedText.slice(left + info),
+        };
     }
   }
 
@@ -364,50 +364,51 @@ class Selection {
    *  @return {Object} 'left' and 'right' attributes contain offsets from beginning and end of Element
    */
   getCaretOffsets(element: any, range?: any) {
-    let preCaretRange
-    let postCaretRange
+    let preCaretRange;
+    let postCaretRange;
 
     if (!range) {
       //@ts-ignore
-      range = window.getSelection().getRangeAt(0)
+      range = window.getSelection().getRangeAt(0);
     }
 
-    preCaretRange = range.cloneRange()
-    postCaretRange = range.cloneRange()
+    preCaretRange = range.cloneRange();
+    postCaretRange = range.cloneRange();
 
-    preCaretRange.selectNodeContents(element)
-    preCaretRange.setEnd(range.endContainer, range.endOffset)
+    preCaretRange.selectNodeContents(element);
+    preCaretRange.setEnd(range.endContainer, range.endOffset);
 
-    postCaretRange.selectNodeContents(element)
-    postCaretRange.setStart(range.endContainer, range.endOffset)
+    postCaretRange.selectNodeContents(element);
+    postCaretRange.setStart(range.endContainer, range.endOffset);
 
     return {
       left: preCaretRange.toString().length,
-      right: postCaretRange.toString().length
-    }
+      right: postCaretRange.toString().length,
+    };
   }
 
   selectNode(node: any) {
-    const range = this.doc.createRange()
-    range.selectNodeContents(node)
-    this.selectRange(range)
+    const range: Range = this.doc.createRange();
+
+    range.selectNodeContents(node);
+    this.selectRange(range);
   }
 
   select(startNode?: any, startOffset?: any, endNode?: any, endOffset?: any) {
-    const range = this.doc.createRange()
-    range.setStart(startNode, startOffset)
+    const range = this.doc.createRange();
+    range.setStart(startNode, startOffset);
     if (endNode) {
-      range.setEnd(endNode, endOffset)
+      range.setEnd(endNode, endOffset);
     } else {
-      range.collapse(true)
+      range.collapse(true);
     }
-    this.selectRange(range)
-    return range
+    this.selectRange(range);
+    return range;
   }
 
   setFocus(focusNode: any, focusOffset: any) {
-    const selection = this.doc.getSelection()
-    selection.extend(focusNode, focusOffset)
+    const selection = this.doc.getSelection();
+    selection.extend(focusNode, focusOffset);
   }
 
   /**
@@ -416,12 +417,12 @@ class Selection {
    *  @param {boolean} moveCursorToStart  A boolean representing whether or not to set the caret to the beginning of the prior selection.
    */
   clearSelection(moveCursorToStart: any) {
-    const { rangeCount } = this.doc.getSelection()
-    if (!rangeCount) return
+    const { rangeCount } = this.doc.getSelection();
+    if (!rangeCount) return;
     if (moveCursorToStart) {
-      this.doc.getSelection().collapseToStart()
+      this.doc.getSelection().collapseToStart();
     } else {
-      this.doc.getSelection().collapseToEnd()
+      this.doc.getSelection().collapseToEnd();
     }
   }
 
@@ -432,63 +433,63 @@ class Selection {
    * @param  {integer}     offset  Where in the element should we jump, 0 by default
    */
   moveCursor(node: any, offset: any) {
-    this.select(node, offset)
+    this.select(node, offset);
   }
 
   getSelectionRange() {
-    const selection = this.doc.getSelection()
+    const selection = this.doc.getSelection();
     if (selection.rangeCount === 0) {
-      return null
+      return null;
     }
-    return selection.getRangeAt(0)
+    return selection.getRangeAt(0);
   }
 
   selectRange(range: any) {
-    const selection = this.doc.getSelection()
+    const selection = this.doc.getSelection();
 
-    selection.removeAllRanges()
-    selection.addRange(range)
+    selection.removeAllRanges();
+    selection.addRange(range);
   }
 
   // https://stackoverflow.com/questions/1197401/
   // how-can-i-get-the-element-the-caret-is-in-with-javascript-when-using-contenteditable
   // by You
   getSelectionStart() {
-    const node = this.doc.getSelection().anchorNode
-    const startNode = node && node.nodeType === 3 ? node.parentNode : node
+    const node = this.doc.getSelection().anchorNode;
+    const startNode = node && node.nodeType === 3 ? node.parentNode : node;
 
-    return startNode
+    return startNode;
   }
 
   setCursorRange(cursorRange: any) {
-    const { anchor, focus } = cursorRange
-    const anchorParagraph = document.querySelector(`#${anchor.key}`)
-    const focusParagraph = document.querySelector(`#${focus.key}`)
+    const { anchor, focus } = cursorRange;
+    const anchorParagraph = document.querySelector(`#${anchor.key}`);
+    const focusParagraph = document.querySelector(`#${focus.key}`);
     //@ts-ignore
     const getNodeAndOffset = (node: any, offset: any) => {
       if (node.nodeType === 3) {
         return {
           node,
-          offset
-        }
+          offset,
+        };
       }
 
-      const childNodes = node.childNodes
-      const len = childNodes.length
-      let i
-      let count = 0
+      const childNodes = node.childNodes;
+      const len = childNodes.length;
+      let i;
+      let count = 0;
       for (i = 0; i < len; i++) {
-        const child = childNodes[i]
+        const child = childNodes[i];
         const textContent = getTextContent(child, [
           CLASS_OR_ID.AG_MATH_RENDER,
-          CLASS_OR_ID.AG_RUBY_RENDER
-        ])
-        const textLength = textContent.length
+          CLASS_OR_ID.AG_RUBY_RENDER,
+        ]);
+        const textLength = textContent.length;
         if (
           child.classList &&
           child.classList.contains(CLASS_OR_ID.AG_FRONT_ICON)
         ) {
-          continue
+          continue;
         }
 
         // Fix #1460 - put the cursor at the next text node or element if it can be put at the last of /^\n$/ or the next text node/element.
@@ -497,247 +498,246 @@ class Selection {
             ? count + textLength > offset
             : count + textLength >= offset
         ) {
-          if (child.classList && child.classList.contains('ag-inline-image')) {
-            const imageContainer = child.querySelector('.ag-image-container')
-            const hasImg = imageContainer.querySelector('img')
+          if (child.classList && child.classList.contains("ag-inline-image")) {
+            const imageContainer = child.querySelector(".ag-image-container");
+            const hasImg = imageContainer.querySelector("img");
 
             if (!hasImg) {
               return {
                 node: child,
-                offset: 0
-              }
+                offset: 0,
+              };
             }
             if (count + textLength === offset) {
               if (child.nextElementSibling) {
                 return {
                   node: child.nextElementSibling,
-                  offset: 0
-                }
+                  offset: 0,
+                };
               } else {
                 return {
                   node: imageContainer,
-                  offset: 1
-                }
+                  offset: 1,
+                };
               }
             } else if (count === offset && count === 0) {
               return {
                 node: imageContainer,
-                offset: 0
-              }
+                offset: 0,
+              };
             } else {
               return {
                 node: child,
-                offset: 0
-              }
+                offset: 0,
+              };
             }
           } else {
-            return getNodeAndOffset(child, offset - count)
+            return getNodeAndOffset(child, offset - count);
           }
         } else {
-          count += textLength
+          count += textLength;
         }
       }
-      return { node, offset }
-    }
+      return { node, offset };
+    };
 
     let { node: anchorNode, offset: anchorOffset } = getNodeAndOffset(
       anchorParagraph,
       anchor.offset
-    )
+    );
     let { node: focusNode, offset: focusOffset } = getNodeAndOffset(
       focusParagraph,
       focus.offset
-    )
+    );
 
     if (
       anchorNode.nodeType === 3 ||
       (anchorNode.nodeType === 1 &&
-        !anchorNode.classList.contains('ag-image-container'))
+        !anchorNode.classList.contains("ag-image-container"))
     ) {
-      anchorOffset = Math.min(anchorOffset, anchorNode.textContent.length)
-      focusOffset = Math.min(focusOffset, focusNode.textContent.length)
+      anchorOffset = Math.min(anchorOffset, anchorNode.textContent.length);
+      focusOffset = Math.min(focusOffset, focusNode.textContent.length);
     }
 
     // First set the anchor node and anchor offset, make it collapsed
-    this.select(anchorNode, anchorOffset)
+    this.select(anchorNode, anchorOffset);
     // Secondly, set the focus node and focus offset.
-    this.setFocus(focusNode, focusOffset)
+    this.setFocus(focusNode, focusOffset);
   }
 
   isValidCursorNode(node: any) {
-    if (!node) return false
+    if (!node) return false;
     if (node.nodeType === 3) {
-      node = node.parentNode
+      node = node.parentNode;
     }
 
-    return node.closest('span.ag-paragraph')
+    return node.closest("span.ag-paragraph");
   }
 
   getCursorRange() {
     let { anchorNode, anchorOffset, focusNode, focusOffset } =
-      this.doc.getSelection()
-    const isAnchorValid = this.isValidCursorNode(anchorNode)
-    const isFocusValid = this.isValidCursorNode(focusNode)
-    let needFix = false
+      this.doc.getSelection();
+    const isAnchorValid = this.isValidCursorNode(anchorNode);
+    const isFocusValid = this.isValidCursorNode(focusNode);
+    let needFix = false;
     if (!isAnchorValid && isFocusValid) {
-      needFix = true
-      anchorNode = focusNode
-      anchorOffset = focusOffset
+      needFix = true;
+      anchorNode = focusNode;
+      anchorOffset = focusOffset;
     } else if (isAnchorValid && !isFocusValid) {
-      needFix = true
-      focusNode = anchorNode
-      focusOffset = anchorOffset
+      needFix = true;
+      focusNode = anchorNode;
+      focusOffset = anchorOffset;
     } else if (!isAnchorValid && !isFocusValid) {
       //@ts-ignore
-      const editor = document.querySelector('#ag-editor-id').parentNode
+      const editor = document.querySelector("#ag-editor-id").parentNode;
       //@ts-ignore
-      editor.blur()
+      editor.blur();
 
       return new Cursor({
         start: null,
         end: null,
         anchor: null,
-        focus: null
-      })
+        focus: null,
+      });
     }
 
     // fix bug click empty line, the cursor will jump to the end of pre line.
     if (
       anchorNode === focusNode &&
       anchorOffset === focusOffset &&
-      anchorNode.textContent === '\n' &&
+      anchorNode.textContent === "\n" &&
       focusOffset === 0
     ) {
-      focusOffset = anchorOffset = 1
+      focusOffset = anchorOffset = 1;
     }
 
-    const anchorParagraph = findNearestParagraph(anchorNode)
-    const focusParagraph = findNearestParagraph(focusNode)
+    const anchorParagraph = findNearestParagraph(anchorNode);
+    const focusParagraph = findNearestParagraph(focusNode);
 
     let aOffset =
-      getOffsetOfParagraph(anchorNode, anchorParagraph) + anchorOffset
-    let fOffset = getOffsetOfParagraph(focusNode, focusParagraph) + focusOffset
+      getOffsetOfParagraph(anchorNode, anchorParagraph) + anchorOffset;
+    let fOffset = getOffsetOfParagraph(focusNode, focusParagraph) + focusOffset;
 
     // fix input after image.
     if (
       anchorNode === focusNode &&
       anchorOffset === focusOffset &&
-      anchorNode.parentNode.classList.contains('ag-image-container') &&
+      anchorNode.parentNode.classList.contains("ag-image-container") &&
       anchorNode.previousElementSibling &&
-      anchorNode.previousElementSibling.nodeName === 'IMG'
+      anchorNode.previousElementSibling.nodeName === "IMG"
     ) {
-      const imageWrapper = anchorNode.parentNode.parentNode
-      const preElement = imageWrapper.previousElementSibling
-      aOffset = 0
+      const imageWrapper = anchorNode.parentNode.parentNode;
+      const preElement = imageWrapper.previousElementSibling;
+      aOffset = 0;
       if (preElement) {
-        aOffset += getOffsetOfParagraph(preElement, anchorParagraph)
+        aOffset += getOffsetOfParagraph(preElement, anchorParagraph);
         aOffset += getTextContent(preElement, [
           CLASS_OR_ID.AG_MATH_RENDER,
-          CLASS_OR_ID.AG_RUBY_RENDER
-        ]).length
+          CLASS_OR_ID.AG_RUBY_RENDER,
+        ]).length;
       }
       aOffset += getTextContent(imageWrapper, [
         CLASS_OR_ID.AG_MATH_RENDER,
-        CLASS_OR_ID.AG_RUBY_RENDER
-      ]).length
-      fOffset = aOffset
+        CLASS_OR_ID.AG_RUBY_RENDER,
+      ]).length;
+      fOffset = aOffset;
     }
 
     if (
       anchorNode === focusNode &&
       anchorNode.nodeType === 1 &&
-      anchorNode.classList.contains('ag-image-container')
+      anchorNode.classList.contains("ag-image-container")
     ) {
-      const imageWrapper = anchorNode.parentNode
-      const preElement = imageWrapper.previousElementSibling
-      aOffset = 0
+      const imageWrapper = anchorNode.parentNode;
+      const preElement = imageWrapper.previousElementSibling;
+      aOffset = 0;
       if (preElement) {
-        aOffset += getOffsetOfParagraph(preElement, anchorParagraph)
+        aOffset += getOffsetOfParagraph(preElement, anchorParagraph);
         aOffset += getTextContent(preElement, [
           CLASS_OR_ID.AG_MATH_RENDER,
-          CLASS_OR_ID.AG_RUBY_RENDER
-        ]).length
+          CLASS_OR_ID.AG_RUBY_RENDER,
+        ]).length;
       }
       if (anchorOffset === 1) {
         aOffset += getTextContent(imageWrapper, [
           CLASS_OR_ID.AG_MATH_RENDER,
-          CLASS_OR_ID.AG_RUBY_RENDER
-        ]).length
+          CLASS_OR_ID.AG_RUBY_RENDER,
+        ]).length;
       }
-      fOffset = aOffset
+      fOffset = aOffset;
     }
 
-    const anchor = { key: anchorParagraph.id, offset: aOffset }
+    const anchor = { key: anchorParagraph.id, offset: aOffset };
 
-    const focus = { key: focusParagraph.id, offset: fOffset }
-    const result = new Cursor({ anchor, focus })
+    const focus = { key: focusParagraph.id, offset: fOffset };
+    const result = new Cursor({ anchor, focus });
 
     if (needFix) {
-      this.setCursorRange(result)
+      this.setCursorRange(result);
     }
 
-    return result
+    return result;
   }
 
   // topOffset is the line counts above cursor, and bottomOffset is line counts below cursor.
   getCursorYOffset(paragraph: any) {
-    const { y } = this.getCursorCoords()
-    const { height, top } = paragraph.getBoundingClientRect()
-    const lineHeight = parseFloat(getComputedStyle(paragraph).lineHeight)
-    const topOffset = Math.round((y - top) / lineHeight)
+    const { y } = this.getCursorCoords();
+    const { height, top } = paragraph.getBoundingClientRect();
+    const lineHeight = parseFloat(getComputedStyle(paragraph).lineHeight);
+    const topOffset = Math.round((y - top) / lineHeight);
     const bottomOffset = Math.round(
       (top + height - lineHeight - y) / lineHeight
-    )
+    );
 
     return {
       topOffset,
-      bottomOffset
-    }
+      bottomOffset,
+    };
   }
 
   getCursorCoords() {
-    const sel = this.doc.getSelection()
-    let range
-    let x = 0
-    let y = 0
-    let width = 0
+    const sel = this.doc.getSelection();
+    let range;
+    let x = 0;
+    let y = 0;
+    let width = 0;
 
     if (sel.rangeCount) {
-      range = sel.getRangeAt(0).cloneRange()
+      range = sel.getRangeAt(0).cloneRange();
       if (range.getClientRects) {
         // range.collapse(true)
-        let rects = range.getClientRects()
+        let rects = range.getClientRects();
         if (
           rects.length === 0 &&
           range.startContainer &&
           (range.startContainer.nodeType === Node.ELEMENT_NODE ||
             range.startContainer.nodeType === Node.TEXT_NODE)
         ) {
-          rects = range.startContainer.parentElement.getClientRects()
+          rects = range.startContainer.parentElement.getClientRects();
           // prevent tiny vibrations
           if (rects.length) {
-            const rect = rects[0]
-            rect.y = rect.y + 1
+            const rect = rects[0];
+            rect.y = rect.y + 1;
           }
         }
         if (rects.length) {
-          const { left, top, x: rectX, y: rectY, width: rWidth } = rects[0]
-          x = rectX || left
-          y = rectY || top
-          width = rWidth
+          const { left, top, x: rectX, y: rectY, width: rWidth } = rects[0];
+          x = rectX || left;
+          y = rectY || top;
+          width = rWidth;
         }
       }
     }
 
-    return { x, y, width }
+    return { x, y, width };
   }
 
   getSelectionEnd() {
-    const node = this.doc.getSelection().focusNode
-    const endNode = node && node.nodeType === 3 ? node.parentNode : node
-
-    return endNode
+    const node = this.doc.getSelection().focusNode;
+    const endNode = node && node.nodeType === 3 ? node.parentNode : node;
+    return endNode;
   }
 }
 
-export default new Selection(document)
+export default new Selection(document);

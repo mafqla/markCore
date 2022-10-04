@@ -1,62 +1,66 @@
-import selection from '../selection'
-import { getTextContent } from '../selection/dom'
-import { beginRules } from '../parser/rules'
-import { tokenizer } from '../parser'
-import { CLASS_OR_ID } from '../config'
+import selection from "../selection";
+import { getTextContent } from "../selection/dom";
+import { beginRules } from "../parser/rules";
+import { tokenizer } from "../parser";
+import { CLASS_OR_ID } from "../config";
 
 const BRACKET_HASH: any = {
-  '{': '}',
-  '[': ']',
-  '(': ')',
-  '*': '*',
-  _: '_',
+  "{": "}",
+  "[": "]",
+  "(": ")",
+  "*": "*",
+  _: "_",
   '"': '"',
   "'": "'",
-  $: '$',
-  '~': '~'
-}
+  $: "$",
+  "~": "~",
+};
 
 const BACK_HASH: any = {
-  '}': '{',
-  ']': '[',
-  ')': '(',
-  '*': '*',
-  _: '_',
+  "}": "{",
+  "]": "[",
+  ")": "(",
+  "*": "*",
+  _: "_",
   '"': '"',
   "'": "'",
-  $: '$',
-  '~': '~'
-}
+  $: "$",
+  "~": "~",
+};
 
 // TODO: refactor later.
-let renderCodeBlockTimer: any = null
+let renderCodeBlockTimer: any = null;
 
 const inputCtrl = (ContentState: any) => {
   // Input @ to quick insert paragraph
-  ContentState.prototype.checkQuickInsert = function (block: any) {
-    const { type, text, functionType } = block
-    if (type !== 'span' || functionType !== 'paragraphContent') return false
-    return /^@\S*$/.test(text)
-  }
+  ContentState.prototype.checkQuickInsert = function (block: {
+    type: "span" | string;
+    functionType: "paragraphContent" | string;
+    text: string;
+  }) {
+    const { type, text, functionType } = block;
+    if (type !== "span" || functionType !== "paragraphContent") return false;
+    return /^@\S*$/.test(text);
+  };
 
   ContentState.prototype.checkCursorInTokenType = function (
-    functionType: any,
+    functionType: string,
     text: any,
     offset: any,
     type: any
   ) {
     if (!/atxLine|paragraphContent|cellContent/.test(functionType)) {
-      return false
+      return false;
     }
 
-    const tokens = tokenizer(text, {
+    const tokens: any[] = tokenizer(text, {
       hasBeginRules: false,
-      options: this.muya.options
-    })
+      options: this.muya.options,
+    });
     return tokens
       .filter((t: any) => t.type === type)
-      .some((t: any) => offset >= t.range.start && offset <= t.range.end)
-  }
+      .some((t: any) => offset >= t.range.start && offset <= t.range.end);
+  };
 
   ContentState.prototype.checkNotSameToken = function (
     functionType: any,
@@ -64,119 +68,119 @@ const inputCtrl = (ContentState: any) => {
     text: any
   ) {
     if (!/atxLine|paragraphContent|cellContent/.test(functionType)) {
-      return false
+      return false;
     }
 
     const oldTokens = tokenizer(oldText, {
-      options: this.muya.options
-    })
+      options: this.muya.options,
+    });
     const tokens = tokenizer(text, {
-      options: this.muya.options
-    })
+      options: this.muya.options,
+    });
 
-    const oldCache: any = {}
-    const cache: any = {}
+    const oldCache: any = {};
+    const cache: any = {};
 
     for (const { type } of oldTokens) {
       if (oldCache[type]) {
-        oldCache[type]++
+        oldCache[type]++;
       } else {
-        oldCache[type] = 1
+        oldCache[type] = 1;
       }
     }
 
     for (const { type } of tokens) {
       if (cache[type]) {
-        cache[type]++
+        cache[type]++;
       } else {
-        cache[type] = 1
+        cache[type] = 1;
       }
     }
 
     if (Object.keys(oldCache).length !== Object.keys(cache).length) {
-      return true
+      return true;
     }
 
     for (const key of Object.keys(oldCache)) {
       if (!cache[key] || oldCache[key] !== cache[key]) {
-        return true
+        return true;
       }
     }
 
-    return false
-  }
+    return false;
+  };
 
   ContentState.prototype.inputHandler = function (
     event: any,
     notEqual = false
   ) {
-    const { start, end } = selection.getCursorRange()
+    const { start, end } = selection.getCursorRange();
     if (!start || !end) {
-      return
+      return;
     }
 
-    const { start: oldStart, end: oldEnd } = this.cursor
-    const key = start.key
-    const block = this.getBlock(key)
-    const paragraph: any = document.querySelector(`#${key}`)
+    const { start: oldStart, end: oldEnd } = this.cursor;
+    const key = start.key;
+    const block = this.getBlock(key);
+    const paragraph: any = document.querySelector(`#${key}`);
 
-    console.clear()
-    console.log('InputEvent\n', event)
-    console.log('cursor\n', start, end, oldStart, oldEnd)
-    console.log('block\n', block)
-    console.log('paragraph\n', paragraph)
+    console.clear();
+    console.log("InputEvent\n", event);
+    console.log("cursor\n", start, end, oldStart, oldEnd);
+    console.log("block\n", block);
+    console.log("paragraph\n", paragraph);
     // Fix issue 1447
     // Fixme: any better solution?
     if (
       oldStart.key === oldEnd.key &&
       oldStart.offset === oldEnd.offset &&
-      block.text.endsWith('\n') &&
+      block.text.endsWith("\n") &&
       oldStart.offset === block.text.length &&
-      event.inputType === 'insertText'
+      event.inputType === "insertText"
     ) {
-      console.log('Fix issue 1447')
-      event.preventDefault()
-      block.text += event.data
-      const offset = block.text.length
+      console.log("Fix issue 1447");
+      event.preventDefault();
+      block.text += event.data;
+      const offset = block.text.length;
       this.cursor = {
         start: { key, offset },
-        end: { key, offset }
-      }
-      this.singleRender(block)
-      return this.inputHandler(event, true)
+        end: { key, offset },
+      };
+      this.singleRender(block);
+      return this.inputHandler(event, true);
     }
 
     let text = getTextContent(paragraph, [
       CLASS_OR_ID.AG_MATH_RENDER,
-      CLASS_OR_ID.AG_RUBY_RENDER
-    ])
-    console.log('text: ' + text)
+      CLASS_OR_ID.AG_RUBY_RENDER,
+    ]);
+    console.log("text: " + text);
 
-    let needRender = false
-    let needRenderAll = false
+    let needRender = false;
+    let needRenderAll = false;
     if (oldStart.key !== oldEnd.key) {
-      const startBlock = this.getBlock(oldStart.key)
-      const startOutmostBlock = this.findOutMostBlock(startBlock)
-      const endBlock = this.getBlock(oldEnd.key)
-      const endOutmostBlock = this.findOutMostBlock(endBlock)
-      if (startBlock.functionType === 'languageInput') {
+      const startBlock = this.getBlock(oldStart.key);
+      const startOutmostBlock = this.findOutMostBlock(startBlock);
+      const endBlock = this.getBlock(oldEnd.key);
+      const endOutmostBlock = this.findOutMostBlock(endBlock);
+      if (startBlock.functionType === "languageInput") {
         // fix #918.
         if (startOutmostBlock === endOutmostBlock && !endBlock.nextSibling) {
-          this.removeBlocks(startBlock, endBlock, false)
-          endBlock.text = ''
+          this.removeBlocks(startBlock, endBlock, false);
+          endBlock.text = "";
         } else if (startOutmostBlock !== endOutmostBlock) {
-          const preBlock = this.getParent(startBlock)
-          const pBlock = this.createBlock('p')
-          this.removeBlocks(startBlock, endBlock)
-          startBlock.functionType = 'paragraphContent'
-          this.appendChild(pBlock, startBlock)
-          this.insertBefore(pBlock, preBlock)
-          this.removeBlock(preBlock)
+          const preBlock = this.getParent(startBlock);
+          const pBlock = this.createBlock("p");
+          this.removeBlocks(startBlock, endBlock);
+          startBlock.functionType = "paragraphContent";
+          this.appendChild(pBlock, startBlock);
+          this.insertBefore(pBlock, preBlock);
+          this.removeBlock(preBlock);
         } else {
-          this.removeBlocks(startBlock, endBlock)
+          this.removeBlocks(startBlock, endBlock);
         }
       } else if (
-        startBlock.functionType === 'paragraphContent' &&
+        startBlock.functionType === "paragraphContent" &&
         start.key === end.key &&
         oldStart.key === start.key &&
         oldEnd.key !== end.key
@@ -185,22 +189,22 @@ const inputCtrl = (ContentState: any) => {
         //          includes soft-line breaks. The normal text from `oldEnd` is moved into the `start`
         //          block but the remaining soft-lines (separated by \n) not. We have to append the
         //          remaining text (soft-lines) to the new start block.
-        const matchBreak = /(?<=.)\n./.exec(endBlock.text)
+        const matchBreak = /(?<=.)\n./.exec(endBlock.text);
         if (matchBreak && matchBreak.index > 0) {
           // Skip if end block is fully selected and the cursor is in the next line (e.g. via keyboard).
-          const lineOffset = matchBreak.index
+          const lineOffset = matchBreak.index;
           if (oldEnd.offset <= lineOffset) {
-            text += endBlock.text.substring(lineOffset)
+            text += endBlock.text.substring(lineOffset);
           }
         }
-        this.removeBlocks(startBlock, endBlock)
+        this.removeBlocks(startBlock, endBlock);
       } else {
-        this.removeBlocks(startBlock, endBlock)
+        this.removeBlocks(startBlock, endBlock);
       }
       if (this.blocks.length === 1) {
-        needRenderAll = true
+        needRenderAll = true;
       }
-      needRender = true
+      needRender = true;
     }
 
     // auto pair (not need to auto pair in math block)
@@ -208,38 +212,38 @@ const inputCtrl = (ContentState: any) => {
       if (
         start.key === end.key &&
         start.offset === end.offset &&
-        event.type === 'input'
+        event.type === "input"
       ) {
-        const { offset } = start
+        const { offset } = start;
         const { autoPairBracket, autoPairMarkdownSyntax, autoPairQuote } =
-          this.muya.options
-        const inputChar = text.charAt(+offset - 1)
-        const preInputChar = text.charAt(+offset - 2)
-        const prePreInputChar = text.charAt(+offset - 3)
-        const postInputChar = text.charAt(+offset)
+          this.muya.options;
+        const inputChar = text.charAt(+offset - 1);
+        const preInputChar = text.charAt(+offset - 2);
+        const prePreInputChar = text.charAt(+offset - 3);
+        const postInputChar = text.charAt(+offset);
 
         if (/^delete/.test(event.inputType)) {
           // handle `deleteContentBackward` or `deleteContentForward`
-          const deletedChar = block.text[offset]
+          const deletedChar = block.text[offset];
           if (
-            event.inputType === 'deleteContentBackward' &&
+            event.inputType === "deleteContentBackward" &&
             postInputChar === BRACKET_HASH[deletedChar]
           ) {
-            needRender = true
-            text = text.substring(0, offset) + text.substring(offset + 1)
+            needRender = true;
+            text = text.substring(0, offset) + text.substring(offset + 1);
           }
           if (
-            event.inputType === 'deleteContentForward' &&
+            event.inputType === "deleteContentForward" &&
             inputChar === BACK_HASH[deletedChar]
           ) {
-            needRender = true
-            start.offset -= 1
-            end.offset -= 1
-            text = text.substring(0, offset - 1) + text.substring(offset)
+            needRender = true;
+            start.offset -= 1;
+            end.offset -= 1;
+            text = text.substring(0, offset - 1) + text.substring(offset);
           }
           /* eslint-disable no-useless-escape */
         } else if (
-          event.inputType.indexOf('delete') === -1 &&
+          event.inputType.indexOf("delete") === -1 &&
           inputChar === postInputChar &&
           ((autoPairQuote && /[']{1}/.test(inputChar)) ||
             (autoPairQuote && /["]{1}/.test(inputChar)) ||
@@ -249,8 +253,8 @@ const inputCtrl = (ContentState: any) => {
               /[*$`~_]{1}/.test(inputChar) &&
               /[_*~]{1}/.test(prePreInputChar)))
         ) {
-          needRender = true
-          text = text.substring(0, offset) + text.substring(offset + 1)
+          needRender = true;
+          text = text.substring(0, offset) + text.substring(offset + 1);
         } else {
           /* eslint-disable no-useless-escape */
           // Not Unicode aware, since things like \p{Alphabetic} or \p{L} are not supported yet
@@ -258,14 +262,14 @@ const inputCtrl = (ContentState: any) => {
             block.functionType,
             text,
             offset,
-            'inline_math'
-          )
+            "inline_math"
+          );
           const isInInlineCode = this.checkCursorInTokenType(
             block.functionType,
             text,
             offset,
-            'inline_code'
-          )
+            "inline_code"
+          );
           if (
             // Issue 2566: Do not complete markdown syntax if the previous character is
             // alphanumeric.
@@ -280,76 +284,76 @@ const inputCtrl = (ContentState: any) => {
               (autoPairBracket &&
                 /[\{\[\(]{1}/.test(inputChar) &&
                 !/[\S]{1}/.test(postInputChar)) ||
-              (block.functionType !== 'codeContent' &&
+              (block.functionType !== "codeContent" &&
                 !isInInlineMath &&
                 !isInInlineCode &&
                 autoPairMarkdownSyntax &&
                 !/[a-z0-9]{1}/i.test(preInputChar) &&
                 /[*$`~_]{1}/.test(inputChar)))
           ) {
-            needRender = true
+            needRender = true;
             text = BRACKET_HASH[event.data]
               ? text.substring(0, offset) +
                 BRACKET_HASH[inputChar] +
                 text.substring(offset)
-              : text
+              : text;
           }
           /* eslint-enable no-useless-escape */
           // Delete the last `*` of `**` when you insert one space between `**` to create a bullet list.
           if (
             /\s/.test(event.data) &&
             /^\* /.test(text) &&
-            preInputChar === '*' &&
-            postInputChar === '*'
+            preInputChar === "*" &&
+            postInputChar === "*"
           ) {
-            text = text.substring(0, offset) + text.substring(offset + 1)
-            needRender = true
+            text = text.substring(0, offset) + text.substring(offset + 1);
+            needRender = true;
           }
         }
       }
 
       if (this.checkNotSameToken(block.functionType, block.text, text)) {
-        needRender = true
+        needRender = true;
       }
 
       // Just work for `Shift + Enter` to create a soft and hard line break.
       if (
-        block.text.endsWith('\n') &&
+        block.text.endsWith("\n") &&
         start.offset === text.length &&
-        (event.inputType === 'insertText' || event.type === 'compositionend')
+        (event.inputType === "insertText" || event.type === "compositionend")
       ) {
-        block.text += event.data
-        start.offset++
-        end.offset++
+        block.text += event.data;
+        start.offset++;
+        end.offset++;
       } else if (
         block.text.length === oldStart.offset &&
-        block.text[oldStart.offset - 2] === '\n' &&
-        event.inputType === 'deleteContentBackward'
+        block.text[oldStart.offset - 2] === "\n" &&
+        event.inputType === "deleteContentBackward"
       ) {
-        block.text = block.text.substring(0, oldStart.offset - 1)
-        start.offset = block.text.length
-        end.offset = block.text.length
+        block.text = block.text.substring(0, oldStart.offset - 1);
+        start.offset = block.text.length;
+        end.offset = block.text.length;
       } else {
-        block.text = text
+        block.text = text;
       }
 
       // Update code block language when modify code block identifer
-      if (block.functionType === 'languageInput') {
-        const parent = this.getParent(block)
-        parent.lang = block.text
+      if (block.functionType === "languageInput") {
+        const parent = this.getParent(block);
+        parent.lang = block.text;
       }
 
       if (beginRules.reference_definition.test(text)) {
-        needRenderAll = true
+        needRenderAll = true;
       }
     }
 
     // show quick insert
-    const rect = paragraph.getBoundingClientRect()
-    const checkQuickInsert = this.checkQuickInsert(block)
-    const reference = this.getPositionReference()
+    const rect = paragraph.getBoundingClientRect();
+    const checkQuickInsert = this.checkQuickInsert(block);
+    const reference = this.getPositionReference();
     reference.getBoundingClientRect = function () {
-      const { x, y, left, top, height, bottom } = rect
+      const { x, y, left, top, height, bottom } = rect;
 
       return Object.assign(
         {},
@@ -361,77 +365,77 @@ const inputCtrl = (ContentState: any) => {
           bottom,
           height,
           width: 0,
-          right: left
+          right: left,
         }
-      )
-    }
+      );
+    };
 
     this.muya.eventCenter.dispatch(
-      'muya-quick-insert',
+      "muya-quick-insert",
       reference,
       block,
       !!checkQuickInsert
-    )
+    );
 
-    this.cursor = { start, end }
+    this.cursor = { start, end };
 
     // Throttle render if edit in code block.
     if (
       block &&
-      block.type === 'span' &&
-      block.functionType === 'codeContent'
+      block.type === "span" &&
+      block.functionType === "codeContent"
     ) {
-      console.log('Throttle render if edit in code block.')
+      console.log("Throttle render if edit in code block.");
       if (renderCodeBlockTimer) {
-        clearTimeout(renderCodeBlockTimer)
+        clearTimeout(renderCodeBlockTimer);
       }
       if (needRender) {
-        this.partialRender()
+        this.partialRender();
       } else {
         renderCodeBlockTimer = setTimeout(() => {
-          this.partialRender()
-        }, 300)
+          this.partialRender();
+        }, 300);
       }
-      return
+      return;
     }
 
     const checkMarkedUpdate = /atxLine|paragraphContent|cellContent/.test(
       block.functionType
     )
       ? this.checkNeedRender()
-      : false
-    let inlineUpdatedBlock = null
+      : false;
+    let inlineUpdatedBlock = null;
     if (
       /atxLine|paragraphContent|cellContent|thematicBreakLine/.test(
         block.functionType
       )
     ) {
-      inlineUpdatedBlock = this.isCollapse() && this.checkInlineUpdate(block)
+      inlineUpdatedBlock = this.isCollapse() && this.checkInlineUpdate(block);
     }
 
     // just for fix #707,need render All if in combines pre list and next list into one list.
     if (inlineUpdatedBlock) {
-      const liBlock = this.getParent(inlineUpdatedBlock)
+      const liBlock = this.getParent(inlineUpdatedBlock);
       if (
         liBlock &&
-        liBlock.type === 'li' &&
+        liBlock.type === "li" &&
         liBlock.preSibling &&
         liBlock.nextSibling
       ) {
-        needRenderAll = true
+        needRenderAll = true;
       }
     }
 
     console.log(
-      '判断渲染类型',
+      "判断渲染类型",
       checkMarkedUpdate,
       inlineUpdatedBlock,
       needRender
-    )
+    );
     if (checkMarkedUpdate || inlineUpdatedBlock || needRender) {
-      return needRenderAll ? this.render() : this.partialRender()
+      return needRenderAll ? this.render() : this.partialRender();
     }
-  }
-}
+  };
+};
 
-export default inputCtrl
+export default inputCtrl;

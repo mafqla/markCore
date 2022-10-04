@@ -76,7 +76,7 @@ export const extractWord = (text: any, offset: any) => {
 
   // Matches all words starting at a good position.
   WORD_DEFINITION.lastIndex = text.lastIndexOf(' ', offset - 1) + 1
-  let match = null
+  let match:any = null
   let left = -1
   while ((match = WORD_DEFINITION.exec(text))) {
     // eslint-disable-line

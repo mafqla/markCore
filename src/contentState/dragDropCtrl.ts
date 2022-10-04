@@ -146,7 +146,7 @@ const dragDropCtrl = (ContentState: any) => {
     }
 
     if (event.dataTransfer.files) {
-      const fileList = []
+      const fileList:any = []
       for (const file of event.dataTransfer.files) {
         fileList.push(file)
       }

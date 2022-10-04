@@ -82,7 +82,7 @@ const tableBlockCtrl = (ContentState: any) => {
 
   ContentState.prototype.initTable = function (block: any) {
     const { text } = block.children[0]
-    const rowHeader = []
+    const rowHeader:any = []
     const len = text.length
     let i
     for (i = 0; i < len; i++) {

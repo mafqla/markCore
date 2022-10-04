@@ -242,7 +242,7 @@ const paragraphCtrl = (ContentState: any) => {
 
   ContentState.prototype.handleLooseListItem = function () {
     const { affiliation } = this.selectionChange(this.cursor)
-    let listContainer = []
+    let listContainer:any = []
     if (affiliation.length >= 1 && /ul|ol/.test(affiliation[0].type)) {
       listContainer = affiliation[0].children
     } else if (affiliation.length >= 3 && affiliation[1].type === 'li') {
@@ -366,7 +366,7 @@ const paragraphCtrl = (ContentState: any) => {
         this.appendChild(preBlock, codeBlock)
         this.insertAfter(preBlock, referBlock)
         let i
-        const removeCache = []
+        const removeCache:any = []
         for (i = startIndex; i <= endIndex; i++) {
           const child = children[i]
           removeCache.push(child)
@@ -711,7 +711,7 @@ const paragraphCtrl = (ContentState: any) => {
     // if cursor is not in one line or paragraph, can not insert paragraph
     if (start.key !== end.key) return
     const block = this.getBlock(start.key)
-    let anchor = null
+    let anchor:any = null
     if (outMost) {
       anchor = this.findOutMostBlock(block)
     } else {
@@ -786,7 +786,7 @@ const paragraphCtrl = (ContentState: any) => {
 
     const preBlock = this.getBlock(startOutmostBlock.preSibling)
     const nextBlock = this.getBlock(startOutmostBlock.nextSibling)
-    let cursorBlock = null
+    let cursorBlock:any = null
     if (nextBlock) {
       cursorBlock = this.firstInDescendant(nextBlock)
     } else if (preBlock) {

@@ -41,7 +41,7 @@ export const getIndex = (barType: any, cell: any) => {
 
 const getDragCells = (tableId: any, barType: any, index: any) => {
   const table: any = document.querySelector(`#${tableId}`)
-  const dragCells = []
+  const dragCells:any = []
   if (barType === 'left') {
     if (index === 0) {
       dragCells.push(...table.querySelectorAll('th'))

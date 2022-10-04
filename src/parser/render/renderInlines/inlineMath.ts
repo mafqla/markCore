@@ -44,7 +44,7 @@ export default function displayMath(
 
   const displayMode = false
   const key = `${math}_${type}`
-  let mathVnode = null
+  let mathVnode:any = null
   let previewSelector = `span.${CLASS_OR_ID.AG_MATH_RENDER}`
   if (loadMathMap.has(key)) {
     mathVnode = loadMathMap.get(key)
