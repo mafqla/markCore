@@ -2,7 +2,7 @@ import { defineConfig } from 'vite'
 
 export default defineConfig({
   build: {
-    outDir: 'markcore',
+    outDir: 'dist',
     minify: 'terser',
     terserOptions: {
       compress: {
@@ -13,7 +13,7 @@ export default defineConfig({
     rollupOptions: {
       output: {
         chunkFileNames: 'core/[name]-[hash].ts',
-        entryFileNames: 'core/[name]-[hash].ts',
+        entryFileNames: 'main.ts',
         assetFileNames: 'assets/[name]-[hash][extname]'
       }
     },

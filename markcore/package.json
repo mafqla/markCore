@@ -1,0 +1,14 @@
+{
+  "name": "markbeta",
+  "version": "0.0.2",
+  "description": "markdown 渲染器",
+  "main": "main.ts",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "markdown"
+  ],
+  "author": "yalisky",
+  "license": "MIT"
+}

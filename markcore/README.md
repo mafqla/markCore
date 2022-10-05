@@ -1,0 +1,20 @@
+## 依赖组成
+- DOMPurify是一个开源的基于DOM的快速XSS净化工具。输入HTML元素,然后通过DOM解析递归元素节点,进行净化,输出安全的HTML。 
+- execall 正则表达式
+- flowchart.js是在浏览器和终端中运行的流程图 DSL 和 SVG 呈现。
+- fuzzaldrin
+- github-markdown-css: GitHub's markdown CSS
+- html-tags: HTML标签列表
+- joplin-turndown-plugin-gfm: Turndown插件
+- katex: 一个快速的数学公式渲染器
+- mermaid: 一个用于生成流程图,时序图,甘特图,类图,状态图,用户图,活动图,组件图,通信图,数据流图,数据字典,ER图,甚至是自定义图表的库。
+- prismjs: 一个轻量级,可扩展的语法高亮库
+- snabbdom: 一个轻量级的虚拟DOM库
+- snabbdom-to-html: 将snabbdom转换为HTML
+- snapsvg: 一个轻量级的SVG库
+- turndown: 将HTML转换为Markdown
+- underscore: 一个JavaScript实用程序库
+- vega: 一个用于创建交互式可视化的图形语法
+- vega-embed: 一个用于嵌入 Vega 视图的库
+- vega-lite: 一个用于创建交互式可视化的图形语法
+- webfontloader: 一个用于异步加载Web字体的库
